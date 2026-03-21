@@ -27,18 +27,27 @@ services:
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Trust Server Certificate=true;"
       Redis__Connection: "${REDIS_CONNECTION}"
       RabbitMQ__Connection: "${RABBITMQ_CONNECTION}"
+      RabbitMQ__EmailQueue: "${RABBITMQ_EMAIL_QUEUE}"
       JwtSettings__Secret: "${JWT_SETTINGS_SECRET}"
       JwtSettings__Issuer: "${JWT_SETTINGS_ISSUER}"
       JwtSettings__Audience: "${JWT_SETTINGS_AUDIENCE}"
       JwtSettings__ExpirationMinutes: "${JWT_SETTINGS_EXPIRATIONMINUTES}"
+      AppSettings__ProjectName: "${APP_SETTINGS__ProjectName}"
+      AppSettings__ProjectOwner: "${APP_SETTINGS__ProjectOwner}"
+      AppSettings__BaseUrl: "${APP_SETTINGS__BASEURL}"
+      AppSettings__InterfaceUrl: "${APP_SETTINGS__InterfaceUrl}"
       Email__Server: "${EMAIL_SERVER}"
       Email__Port: "${EMAIL_PORT}"
       Email__Username: "${EMAIL_USERNAME}"
       Email__Password: "${EMAIL_PASSWORD}"
       Email__EnableSsl: "${EMAIL_ENABLESSL}"
     depends_on:
-      - postgres
-      - redis
+      postgres:
+        condition: service_started
+      redis:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
 
   redisinsight:
     image: redislabs/redisinsight
@@ -58,6 +67,11 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
       RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASS}"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
   postgres_data:

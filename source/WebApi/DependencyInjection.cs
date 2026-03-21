@@ -6,11 +6,14 @@ using Project.WebApi.Configurations;
 using System.Globalization;
 using Project.Domain.Notifications;
 using Project.Infrastructure.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using System.Security.Claims;
 using Project.Domain.Constants;
+using System.Threading.RateLimiting;
+using Project.Application.Common.Settings;
 
 namespace Microsoft.Extensions.DependencyInjection;
 
@@ -22,7 +25,14 @@ public static class DependencyInjection
 
         services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
 
-        services.AddAuthorization();
+        services.Configure<AppSettings>(configuration.GetSection("AppSettings"));
+
+        services.AddAuthorization(options =>
+        {
+            options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                .RequireAuthenticatedUser()
+                .Build();
+        });
 
         services.AddAuthentication(options =>
         {
@@ -40,8 +50,56 @@ public static class DependencyInjection
                 ValidIssuer = jwtSettings!.Issuer,
                 ValidAudience = jwtSettings.Audience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-                RoleClaimType = ClaimTypes.Role
+                RoleClaimType = ClaimTypes.Role,
+                ClockSkew = TimeSpan.Zero
             };
+        });
+
+        // ── CORS ───────────────────────────────
+        var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? [];
+        services.AddCors(options =>
+        {
+            options.AddPolicy("DefaultCors", policy =>
+            {
+                if (allowedOrigins.Length > 0)
+                    policy.WithOrigins(allowedOrigins)
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                else
+                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173")
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+            });
+        });
+
+        // ── Rate Limiting ───────────────────────
+        services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+
+            // General API: 200 req / min per IP
+            options.AddPolicy("global", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit          = 200,
+                        Window               = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit           = 0
+                    }));
+
+            // Auth endpoints: 10 req / min per IP (brute-force protection)
+            options.AddPolicy("auth", context =>
+                RateLimitPartition.GetFixedWindowLimiter(
+                    partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+                    factory: _ => new FixedWindowRateLimiterOptions
+                    {
+                        PermitLimit          = 10,
+                        Window               = TimeSpan.FromMinutes(1),
+                        QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                        QueueLimit           = 0
+                    }));
         });
 
         services.AddScoped<IUser, CurrentUser>();

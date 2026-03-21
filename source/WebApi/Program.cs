@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Project.Infrastructure.Data;
 using Project.WebApi.Configurations;
+using Project.WebApi.Infrastructure;
 
 static async Task InitialiseDatabaseAsync(WebApplication app)
 {
@@ -15,6 +16,9 @@ static async Task InitialiseDatabaseAsync(WebApplication app)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Remove the "Server" header at the Kestrel level
+builder.WebHost.ConfigureKestrel(opt => opt.AddServerHeader = false);
 
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
@@ -33,20 +37,28 @@ else
     app.UseHsts();
 }
 
+// Security headers — must be added before any response-producing middleware
+app.UseMiddleware<SecurityHeadersMiddleware>();
+
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 app.UseHealthChecks("/health");
 
 app.UseHttpsRedirection();
 
+app.UseCors("DefaultCors");
+
+app.UseRateLimiter();
+
 app.UseRouting();
+// Enable Swagger UI before authentication/authorization so it's accessible
+app.UseSwaggerConfiguration();
+
 app.UseAuthentication();
 
 app.UseAuthorization();
 
 app.MapControllers();
-
-app.UseSwaggerConfiguration();
 
 app.UseExceptionHandler(options => { });
 

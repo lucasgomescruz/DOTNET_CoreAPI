@@ -1,4 +1,5 @@
 ﻿using Project.Application.Common.Interfaces;
+using Project.Application.Common.Models;
 using Project.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -47,7 +48,8 @@ public static class DependencyInjection
             throw new InvalidOperationException("RabbitMQ connection string is not configured.");
         }
 
-        services.AddSingleton(sp =>
+        // Register as typed IConnection so consumers can inject it by interface
+        services.AddSingleton<IConnection>(sp =>
         {
             var factory = new ConnectionFactory()
             {
@@ -57,6 +59,10 @@ public static class DependencyInjection
 
             return factory.CreateConnection();
         });
+
+        services.Configure<RabbitMQSettings>(configuration.GetSection("RabbitMQ"));
+        services.AddSingleton<IEmailQueuePublisher, EmailQueuePublisher>();
+        services.AddHostedService<EmailConsumerService>();
 
         services.Configure<EmailSettings>(configuration.GetSection("Email"));
 

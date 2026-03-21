@@ -1,5 +1,6 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Project.Application.Features.Commands.RegisterUser;
 using Project.Application.Features.Commands.LoginUser;
 using Project.Domain.Notifications;
@@ -9,6 +10,8 @@ using Project.Application.Features.Commands.ConfirmUser;
 
 namespace Project.WebApi.Controllers
 {
+    [EnableRateLimiting("auth")]
+    [AllowAnonymous]
     public class AuthenticationController(INotificationHandler<DomainNotification> notifications,
                           INotificationHandler<DomainSuccessNotification> successNotifications,
                           IHttpContextAccessor httpContextAccessor,
