@@ -26,6 +26,14 @@ namespace Project.Domain.Entities
             RoleId = roleId;
         }
 
+        public void UpdateUsername(string newUsername)
+        {
+            if (string.IsNullOrWhiteSpace(newUsername))
+                throw new ArgumentException("Username cannot be empty", nameof(newUsername));
+
+            Username = newUsername.Trim();
+        }
+
         public static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
