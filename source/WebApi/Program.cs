@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Project.Infrastructure.Data;
 using Project.WebApi.Configurations;
 using Project.WebApi.Infrastructure;
+using Prometheus;
 
 static async Task InitialiseDatabaseAsync(WebApplication app)
 {
@@ -51,6 +52,9 @@ app.UseCors("DefaultCors");
 app.UseRateLimiter();
 
 app.UseRouting();
+// Prometheus metrics endpoints
+app.UseMetricServer();
+app.UseHttpMetrics();
 // Enable Swagger UI before authentication/authorization so it's accessible
 app.UseSwaggerConfiguration();
 

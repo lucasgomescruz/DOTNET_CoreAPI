@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.Text;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using System.Security.Claims;
@@ -23,6 +24,7 @@ public class RequestResponseLoggingMiddleware
 
         var request = context.Request;
         string? requestBody = null;
+        string? maskedRequestBody = null;
 
         try
         {
@@ -32,6 +34,7 @@ public class RequestResponseLoggingMiddleware
                 using var reader = new StreamReader(request.Body, Encoding.UTF8, detectEncodingFromByteOrderMarks: false, leaveOpen: true);
                 requestBody = await reader.ReadToEndAsync();
                 request.Body.Position = 0;
+                maskedRequestBody = MaskSensitiveData(requestBody);
             }
         }
         catch
@@ -46,7 +49,7 @@ public class RequestResponseLoggingMiddleware
                    ?? context.User?.FindFirst("sub")?.Value;
 
         _logger.LogInformation("Incoming request {method} {path} QueryString={qs} UserId={userId} Username={username} Body={body}",
-            request.Method, request.Path, request.QueryString, userId, username, requestBody);
+            request.Method, request.Path, request.QueryString, userId, username, maskedRequestBody ?? requestBody);
 
         var originalBodyStream = context.Response.Body;
         await using var responseBody = new MemoryStream();
@@ -72,6 +75,30 @@ public class RequestResponseLoggingMiddleware
             _logger.LogError(ex, "Unhandled exception for {method} {path} in {duration}ms UserId={userId}", request.Method, request.Path, sw.ElapsedMilliseconds, userId);
             context.Response.Body = originalBodyStream;
             throw;
+        }
+    }
+
+    private static string? MaskSensitiveData(string? body)
+    {
+        if (string.IsNullOrEmpty(body))
+            return body;
+
+        try
+        {
+            // Mask JSON string values for common password keys (case-insensitive)
+            var sensitiveKeys = "password|pwd|pass|senha";
+            var jsonPattern = new Regex($"(?<pre>\"(?i:{sensitiveKeys})\"\\s*:\\s*\")(?<val>.*?)(?<post>\")", RegexOptions.Singleline);
+            var masked = jsonPattern.Replace(body, "${pre}*****${post}");
+
+            // Also mask form-encoded bodies like password=...&
+            var formPattern = new Regex("(?i)\b(password|pwd|pass|senha)=([^&\\r\\n]+)");
+            masked = formPattern.Replace(masked, m => $"{m.Groups[1].Value}=*****");
+
+            return masked;
+        }
+        catch
+        {
+            return body;
         }
     }
 }

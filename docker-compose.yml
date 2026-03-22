@@ -49,6 +49,39 @@ services:
       rabbitmq:
         condition: service_healthy
 
+  prometheus:
+    image: prom/prometheus:latest
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+    ports:
+      - "9090:9090"
+    depends_on:
+      - webapi
+
+  grafana:
+    image: grafana/grafana-oss:9.5.6
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+  grafana-init:
+    image: python:3.11-alpine
+    environment:
+      - GRAFANA_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD}
+      - GRAFANA_DASHBOARD_UID=webapi-http-requests
+    volumes:
+      - ./monitoring/grafana/init:/opt/init
+    depends_on:
+      - grafana
+    entrypoint: ["python", "/opt/init/set-home.py"]
+
   redisinsight:
     image: redislabs/redisinsight
     ports:

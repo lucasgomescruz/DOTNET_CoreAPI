@@ -1,0 +1,55 @@
+{
+  "id": null,
+  "title": "WebAPI - HTTP Requests",
+  "uid": "webapi-http-requests",
+  "schemaVersion": 30,
+  "version": 1,
+  "panels": [
+    {
+      "type": "graph",
+      "title": "Requests per second (5m)",
+      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 8},
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_received_total[5m])) by (endpoint)",
+          "legendFormat": "{{endpoint}}",
+          "refId": "A"
+        }
+      ],
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "stat",
+      "title": "WebAPI Health (up)",
+      "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
+      "targets": [
+        {
+          "expr": "avg(up{job=\"webapi\"})",
+          "legendFormat": "",
+          "refId": "B"
+        }
+      ],
+      "datasource": "Prometheus",
+      "options": {
+        "reduceOptions": {"values": false, "calcs": ["last"], "fields": ""},
+        "orientation": "horizontal",
+        "colorMode": "value",
+        "graphMode": "none"
+      }
+    },
+    {
+      "type": "graph",
+      "title": "Response codes (5m increase)",
+      "gridPos": {"x": 6, "y": 8, "w": 18, "h": 8},
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_received_total[5m])) by (code)",
+          "legendFormat": "{{code}}",
+          "refId": "C"
+        }
+      ],
+      "datasource": "Prometheus"
+    }
+  ],
+  "time": {"from": "now-1h", "to": "now"}
+}
