@@ -30,12 +30,82 @@
         }
       ],
       "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": { "text": "DOWN", "index": 0 },
+                "1": { "text": "OK", "index": 1 }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "value": null, "color": "red" },
+              { "value": 0.5, "color": "green" }
+            ]
+          },
+          "unit": "none"
+        },
+        "overrides": []
+      },
       "options": {
         "reduceOptions": {"values": false, "calcs": ["last"], "fields": ""},
         "orientation": "horizontal",
         "colorMode": "value",
         "graphMode": "none"
       }
+    },
+    {
+      "type": "stat",
+      "title": "DB Check",
+      "gridPos": {"x": 0, "y": 12, "w": 4, "h": 3},
+      "targets": [ { "expr": "webapi_db_up", "refId": "D" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "index": 0 }, "1": { "text": "OK", "index": 1 } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "red" }, { "value": 0.5, "color": "green" } ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "Redis Check",
+      "gridPos": {"x": 4, "y": 12, "w": 4, "h": 3},
+      "targets": [ { "expr": "webapi_redis_up", "refId": "E" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "index": 0 }, "1": { "text": "OK", "index": 1 } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "red" }, { "value": 0.5, "color": "green" } ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+    },
+    {
+      "type": "stat",
+      "title": "RabbitMQ Check",
+      "gridPos": {"x": 8, "y": 12, "w": 4, "h": 3},
+      "targets": [ { "expr": "webapi_rabbitmq_up", "refId": "F" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "index": 0 }, "1": { "text": "OK", "index": 1 } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "red" }, { "value": 0.5, "color": "green" } ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
     },
     {
       "type": "graph",

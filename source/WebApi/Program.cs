@@ -1,5 +1,8 @@
 
 using System.Globalization;
+using System.Linq;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using System.Text.Json;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -43,7 +46,28 @@ app.UseMiddleware<SecurityHeadersMiddleware>();
 
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
-app.UseHealthChecks("/health");
+app.MapHealthChecks("/health", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+
+        var result = new
+        {
+            status = report.Status == Microsoft.Extensions.Diagnostics.HealthChecks.HealthStatus.Healthy ? "OK" : "DOWN",
+            totalDuration = report.TotalDuration.TotalMilliseconds,
+            checks = report.Entries.Select(e => new
+            {
+                name = e.Key,
+                status = e.Value.Status.ToString(),
+                description = e.Value.Description,
+                duration = e.Value.Duration.TotalMilliseconds
+            }).ToArray()
+        };
+
+        await context.Response.WriteAsync(JsonSerializer.Serialize(result));
+    }
+});
 
 app.UseHttpsRedirection();
 

@@ -111,7 +111,12 @@ public static class DependencyInjection
         services.AddControllers();
 
         services.AddHealthChecks()
-            .AddDbContextCheck<ApplicationDbContext>();
+            .AddDbContextCheck<ApplicationDbContext>(name: "database")
+            .AddCheck<Project.WebApi.Infrastructure.RedisHealthCheck>("redis")
+            .AddCheck<Project.WebApi.Infrastructure.RabbitMqHealthCheck>("rabbitmq");
+
+        // Run health checks periodically and export per-dependency Prometheus metrics
+        services.AddHostedService<Project.WebApi.Infrastructure.HealthCheckMetricsPublisher>();
 
         services.AddExceptionHandler<CustomExceptionHandler>();
 
