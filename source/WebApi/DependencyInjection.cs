@@ -1,6 +1,6 @@
 ﻿using Project.Application.Common.Interfaces;
 using Project.Infrastructure.Data;
-using Project.WebApiApi.Services;
+using Project.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Project.WebApi.Configurations;
 using System.Globalization;

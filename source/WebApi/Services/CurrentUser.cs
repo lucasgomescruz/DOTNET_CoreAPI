@@ -3,14 +3,24 @@ using System.Security.Claims;
 
 using Project.Application.Common.Interfaces;
 
-namespace Project.WebApiApi.Services;
+namespace Project.WebApi.Services;
 
 public class CurrentUser(IHttpContextAccessor httpContextAccessor) : IUser
 {
     private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
 
-    public Guid? Id => Guid.TryParse(_httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Jti), out var id) ? id : null;
-    public string? Username => _httpContextAccessor.HttpContext?.User.FindFirstValue(JwtRegisteredClaimNames.Sub);
-    public string? Role => _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Role);
-    public string? Email => _httpContextAccessor.HttpContext?.User.FindFirstValue(ClaimTypes.Email);
+    public Guid? Id => Guid.TryParse(GetClaimValue(JwtRegisteredClaimNames.Jti), out var id) ? id : null;
+
+    public string? Username => GetClaimValue(ClaimTypes.Name)
+                               ?? GetClaimValue(ClaimTypes.NameIdentifier)
+                               ?? GetClaimValue(JwtRegisteredClaimNames.Sub)
+                               ?? GetClaimValue("sub");
+
+    public string? Role => GetClaimValue(ClaimTypes.Role);
+    public string? Email => GetClaimValue(ClaimTypes.Email);
+
+    private string? GetClaimValue(string claimType)
+    {
+        return _httpContextAccessor.HttpContext?.User?.FindFirstValue(claimType);
+    }
 }

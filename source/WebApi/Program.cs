@@ -58,6 +58,9 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 
+// Request/Response logging (captures request, response and timing for all routes)
+app.UseMiddleware<RequestResponseLoggingMiddleware>();
+
 app.MapControllers();
 
 app.UseExceptionHandler(options => { });
