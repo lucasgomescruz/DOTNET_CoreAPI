@@ -35,7 +35,7 @@ services:
       AppSettings__ProjectName: "${APP_SETTINGS__ProjectName}"
       AppSettings__ProjectOwner: "${APP_SETTINGS__ProjectOwner}"
       AppSettings__BaseUrl: "${APP_SETTINGS__BASEURL}"
-      AppSettings__InterfaceUrl: "${APP_SETTINGS__InterfaceUrl}"
+      AppSettings__InterfaceUrl: "${APP_SETTINGS__INTERFACEURL}"
       Email__Server: "${EMAIL_SERVER}"
       Email__Port: "${EMAIL_PORT}"
       Email__Username: "${EMAIL_USERNAME}"
