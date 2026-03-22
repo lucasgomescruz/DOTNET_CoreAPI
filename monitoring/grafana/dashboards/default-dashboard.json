@@ -6,64 +6,26 @@
   "version": 1,
   "panels": [
     {
-      "type": "graph",
-      "title": "Requests per second (5m)",
-      "gridPos": {"x": 0, "y": 0, "w": 24, "h": 8},
-      "targets": [
-        {
-          "expr": "sum(rate(http_requests_received_total[5m])) by (endpoint)",
-          "legendFormat": "{{endpoint}}",
-          "refId": "A"
-        }
-      ],
-      "datasource": "Prometheus"
-    },
-    {
       "type": "stat",
       "title": "WebAPI Health (up)",
-      "gridPos": {"x": 0, "y": 8, "w": 6, "h": 4},
-      "targets": [
-        {
-          "expr": "avg(up{job=\"webapi\"})",
-          "legendFormat": "",
-          "refId": "B"
-        }
-      ],
+      "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
+      "targets": [ { "expr": "avg(up{job=\"webapi\"})", "refId": "A" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
-          "mappings": [
-            {
-              "type": "value",
-              "options": {
-                "0": { "text": "DOWN", "index": 0 },
-                "1": { "text": "OK", "index": 1 }
-              }
-            }
-          ],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              { "value": null, "color": "red" },
-              { "value": 0.5, "color": "green" }
-            ]
-          },
+          "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "index": 0 }, "1": { "text": "OK", "index": 1 } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "red" }, { "value": 0.5, "color": "green" } ] },
           "unit": "none"
         },
         "overrides": []
       },
-      "options": {
-        "reduceOptions": {"values": false, "calcs": ["last"], "fields": ""},
-        "orientation": "horizontal",
-        "colorMode": "value",
-        "graphMode": "none"
-      }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
     },
     {
       "type": "stat",
       "title": "DB Check",
-      "gridPos": {"x": 0, "y": 12, "w": 4, "h": 3},
-      "targets": [ { "expr": "webapi_db_up", "refId": "D" } ],
+      "gridPos": { "x": 0, "y": 4, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_db_up", "refId": "B" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -78,8 +40,8 @@
     {
       "type": "stat",
       "title": "Redis Check",
-      "gridPos": {"x": 4, "y": 12, "w": 4, "h": 3},
-      "targets": [ { "expr": "webapi_redis_up", "refId": "E" } ],
+      "gridPos": { "x": 0, "y": 7, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_redis_up", "refId": "C" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -94,8 +56,8 @@
     {
       "type": "stat",
       "title": "RabbitMQ Check",
-      "gridPos": {"x": 8, "y": 12, "w": 4, "h": 3},
-      "targets": [ { "expr": "webapi_rabbitmq_up", "refId": "F" } ],
+      "gridPos": { "x": 0, "y": 10, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_rabbitmq_up", "refId": "D" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -109,17 +71,18 @@
     },
     {
       "type": "graph",
+      "title": "Requests per second (5m)",
+      "gridPos": { "x": 8, "y": 0, "w": 16, "h": 8 },
+      "targets": [ { "expr": "sum(rate(http_requests_received_total[5m])) by (endpoint)", "legendFormat": "{{endpoint}}", "refId": "E" } ],
+      "datasource": "Prometheus"
+    },
+    {
+      "type": "graph",
       "title": "Response codes (5m increase)",
-      "gridPos": {"x": 6, "y": 8, "w": 18, "h": 8},
-      "targets": [
-        {
-          "expr": "sum(increase(http_requests_received_total[5m])) by (code)",
-          "legendFormat": "{{code}}",
-          "refId": "C"
-        }
-      ],
+      "gridPos": { "x": 8, "y": 8, "w": 16, "h": 6 },
+      "targets": [ { "expr": "sum(increase(http_requests_received_total[5m])) by (code)", "legendFormat": "{{code}}", "refId": "F" } ],
       "datasource": "Prometheus"
     }
   ],
-  "time": {"from": "now-1h", "to": "now"}
+  "time": { "from": "now-1h", "to": "now" }
 }
