@@ -8,6 +8,6 @@ scrape_configs:
     # The placeholder below will be replaced at container start with the
     # environment variable `METRICS_API_KEY` provided by Docker Compose.
     params:
-      api_key: ['@@METRICS_API_KEY@@']
+      api_key: ['metrics-api-key-CHANGE_ME']
     static_configs:
       - targets: ['webapi:80']

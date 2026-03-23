@@ -1,6 +1,7 @@
 
 using System.Globalization;
 using System.Linq;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using System.Text.Json;
 using Microsoft.AspNetCore.Localization;
@@ -76,9 +77,37 @@ app.UseCors("DefaultCors");
 app.UseRateLimiter();
 
 app.UseRouting();
-// Prometheus metrics endpoints
+// Prometheus metrics endpoints — protect /metrics with an API key
+app.UseHttpMetrics(); // still record HTTP metrics for all routes
+
+var metricsApiKey = app.Configuration["METRICS_API_KEY"];
+
+app.UseWhen(context => context.Request.Path.StartsWithSegments("/metrics"), appBuilder =>
+{
+    appBuilder.Use(async (context, next) =>
+    {
+        var expected = metricsApiKey;
+        if (string.IsNullOrEmpty(expected))
+        {
+            context.Response.StatusCode = StatusCodes.Status403Forbidden;
+            await context.Response.WriteAsync("Metrics access forbidden: API key not configured");
+            return;
+        }
+
+        string? provided = context.Request.Headers["X-API-KEY"].FirstOrDefault() ?? context.Request.Query["api_key"].FirstOrDefault();
+
+        if (!string.Equals(provided, expected, StringComparison.Ordinal))
+        {
+            context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+            await context.Response.WriteAsync("Unauthorized");
+            return;
+        }
+
+        await next();
+    });
+});
+
 app.UseMetricServer();
-app.UseHttpMetrics();
 // Enable Swagger UI before authentication/authorization so it's accessible
 app.UseSwaggerConfiguration();
 

@@ -24,6 +24,7 @@ services:
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:80"
+      METRICS_API_KEY: ${METRICS_API_KEY}
       ConnectionStrings__DefaultConnection: "Host=postgres;Database=${POSTGRES_DB};Username=${POSTGRES_USER};Password=${POSTGRES_PASSWORD};Trust Server Certificate=true;"
       Redis__Connection: "${REDIS_CONNECTION}"
       RabbitMQ__Connection: "${RABBITMQ_CONNECTION}"
@@ -53,8 +54,9 @@ services:
     image: prom/prometheus:latest
     volumes:
       - ./monitoring/prometheus:/etc/prometheus
-    command:
-      - --config.file=/etc/prometheus/prometheus.yml
+    environment:
+      METRICS_API_KEY: ${METRICS_API_KEY}
+    entrypoint: ["/bin/sh", "-c", "sed \"s/@@METRICS_API_KEY@@/${METRICS_API_KEY}/g\" /etc/prometheus/prometheus.yml > /etc/prometheus/prometheus.rendered.yml && exec /bin/prometheus --config.file=/etc/prometheus/prometheus.rendered.yml"]
     ports:
       - "9090:9090"
     depends_on:
