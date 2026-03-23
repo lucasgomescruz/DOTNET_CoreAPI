@@ -11,3 +11,8 @@ scrape_configs:
       api_key: ['@@METRICS_API_KEY@@']
     static_configs:
       - targets: ['webapi:80']
+
+  - job_name: 'prometheus'
+    scrape_interval: 15s
+    static_configs:
+      - targets: ['prometheus:9090']

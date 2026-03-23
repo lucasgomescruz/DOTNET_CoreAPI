@@ -70,6 +70,22 @@
       "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
     },
     {
+      "type": "stat",
+      "title": "Prometheus Check",
+      "gridPos": { "x": 0, "y": 13, "w": 8, "h": 3 },
+      "targets": [ { "expr": "avg(up{job=\"prometheus\"})", "refId": "E" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "DOWN", "index": 0 }, "1": { "text": "OK", "index": 1 } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "red" }, { "value": 0.5, "color": "green" } ] },
+          "unit": "none"
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+    },
+    {
       "type": "graph",
       "title": "Requests per second (1m, endpoint non-empty)",
       "gridPos": { "x": 8, "y": 0, "w": 16, "h": 8 },
