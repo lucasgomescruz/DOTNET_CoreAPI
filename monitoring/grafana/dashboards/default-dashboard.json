@@ -3,7 +3,7 @@
   "title": "WebAPI - HTTP Requests",
   "uid": "webapi-http-requests",
   "schemaVersion": 30,
-  "version": 1,
+  "version": 2,
   "panels": [
     {
       "type": "stat",
@@ -71,16 +71,16 @@
     },
     {
       "type": "graph",
-      "title": "Requests per second (5m)",
+      "title": "Requests per second (1m, endpoint non-empty)",
       "gridPos": { "x": 8, "y": 0, "w": 16, "h": 8 },
-      "targets": [ { "expr": "sum(rate(http_requests_received_total[5m])) by (endpoint)", "legendFormat": "{{endpoint}}", "refId": "E" } ],
+      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\", endpoint!~\"^$\"}[1m])) by (endpoint)", "legendFormat": "{{endpoint}}", "refId": "E" } ],
       "datasource": "Prometheus"
     },
     {
       "type": "graph",
-      "title": "Response codes (5m increase)",
+      "title": "Response codes (rate 5m, all endpoints)",
       "gridPos": { "x": 8, "y": 8, "w": 16, "h": 6 },
-      "targets": [ { "expr": "sum(increase(http_requests_received_total[5m])) by (code)", "legendFormat": "{{code}}", "refId": "F" } ],
+      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\"}[5m])) by (code)", "legendFormat": "{{code}}", "refId": "F" } ],
       "datasource": "Prometheus"
     }
   ],
