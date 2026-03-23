@@ -11,6 +11,9 @@ using Project.Infrastructure.Data;
 using Project.WebApi.Configurations;
 using Project.WebApi.Infrastructure;
 using Prometheus;
+using Serilog;
+using Serilog.Sinks.Grafana.Loki;
+using Microsoft.AspNetCore.DataProtection;
 
 static async Task InitialiseDatabaseAsync(WebApplication app)
 {
@@ -21,6 +24,40 @@ static async Task InitialiseDatabaseAsync(WebApplication app)
 }
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Configure DataProtection for container environments ───────────────────
+var dataProtectionKeyPath = "/data/dataprotection-keys";
+if (!Directory.Exists(dataProtectionKeyPath))
+{
+    Directory.CreateDirectory(dataProtectionKeyPath);
+}
+
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(dataProtectionKeyPath))
+    .SetApplicationName("CoreAPI");
+
+builder.Host.UseSerilog((ctx, services, logConfig) =>
+{
+    logConfig
+        .ReadFrom.Configuration(ctx.Configuration)
+        .ReadFrom.Services(services)
+        .Enrich.FromLogContext()
+        .Enrich.WithProperty("app", "webapi")
+        .Enrich.WithProperty("env", ctx.HostingEnvironment.EnvironmentName);
+
+    var lokiUrl = ctx.Configuration["Loki:Url"];
+    if (!string.IsNullOrWhiteSpace(lokiUrl))
+    {
+        logConfig.WriteTo.GrafanaLoki(
+            lokiUrl,
+            labels: new[]
+            {
+                new LokiLabel { Key = "app",  Value = "webapi" },
+                new LokiLabel { Key = "env",  Value = ctx.HostingEnvironment.EnvironmentName }
+            },
+            propertiesAsLabels: new[] { "level" });
+    }
+});
 
 // Remove the "Server" header at the Kestrel level
 builder.WebHost.ConfigureKestrel(opt => opt.AddServerHeader = false);
@@ -35,11 +72,12 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     await InitialiseDatabaseAsync(app);
-
 }
-else
+else if (app.Environment.IsProduction())
 {
     app.UseHsts();
+    // Only redirect HTTP to HTTPS in production
+    app.UseHttpsRedirection();
 }
 
 // Security headers — must be added before any response-producing middleware
@@ -69,8 +107,6 @@ app.MapHealthChecks("/health", new HealthCheckOptions
         await context.Response.WriteAsync(JsonSerializer.Serialize(result));
     }
 });
-
-app.UseHttpsRedirection();
 
 app.UseCors("DefaultCors");
 

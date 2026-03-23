@@ -1,15 +1,18 @@
 {
   "id": null,
-  "title": "WebAPI - HTTP Requests",
+  "title": "WebAPI - Observability",
   "uid": "webapi-http-requests",
-  "schemaVersion": 30,
-  "version": 2,
+  "schemaVersion": 36,
+  "version": 3,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
   "panels": [
     {
+      "id": 1,
       "type": "stat",
       "title": "WebAPI Health (up)",
       "gridPos": { "x": 0, "y": 0, "w": 8, "h": 4 },
-      "targets": [ { "expr": "avg(up{job=\"webapi\"})", "refId": "A" } ],
+      "targets": [ { "expr": "avg(up{job=\"webapi\"})", "refId": "A", "datasource": "Prometheus" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -19,13 +22,14 @@
         },
         "overrides": []
       },
-      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
     },
     {
+      "id": 2,
       "type": "stat",
       "title": "DB Check",
       "gridPos": { "x": 0, "y": 4, "w": 8, "h": 3 },
-      "targets": [ { "expr": "webapi_db_up", "refId": "B" } ],
+      "targets": [ { "expr": "webapi_db_up", "refId": "B", "datasource": "Prometheus" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -35,13 +39,14 @@
         },
         "overrides": []
       },
-      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
     },
     {
+      "id": 3,
       "type": "stat",
       "title": "Redis Check",
       "gridPos": { "x": 0, "y": 7, "w": 8, "h": 3 },
-      "targets": [ { "expr": "webapi_redis_up", "refId": "C" } ],
+      "targets": [ { "expr": "webapi_redis_up", "refId": "C", "datasource": "Prometheus" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -51,13 +56,14 @@
         },
         "overrides": []
       },
-      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
     },
     {
+      "id": 4,
       "type": "stat",
       "title": "RabbitMQ Check",
       "gridPos": { "x": 0, "y": 10, "w": 8, "h": 3 },
-      "targets": [ { "expr": "webapi_rabbitmq_up", "refId": "D" } ],
+      "targets": [ { "expr": "webapi_rabbitmq_up", "refId": "D", "datasource": "Prometheus" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -67,13 +73,14 @@
         },
         "overrides": []
       },
-      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
     },
     {
+      "id": 5,
       "type": "stat",
       "title": "Prometheus Check",
       "gridPos": { "x": 0, "y": 13, "w": 8, "h": 3 },
-      "targets": [ { "expr": "avg(up{job=\"prometheus\"})", "refId": "E" } ],
+      "targets": [ { "expr": "avg(up{job=\"prometheus\"})", "refId": "E", "datasource": "Prometheus" } ],
       "datasource": "Prometheus",
       "fieldConfig": {
         "defaults": {
@@ -83,22 +90,242 @@
         },
         "overrides": []
       },
-      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "value" }
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
     },
     {
-      "type": "graph",
-      "title": "Requests per second (1m, endpoint non-empty)",
+      "id": 6,
+      "type": "timeseries",
+      "title": "Requests per second (1m, by endpoint)",
       "gridPos": { "x": 8, "y": 0, "w": 16, "h": 8 },
-      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\", endpoint!~\"^$\"}[1m])) by (endpoint)", "legendFormat": "{{endpoint}}", "refId": "E" } ],
-      "datasource": "Prometheus"
+      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\", endpoint!~\"^$\"}[1m])) by (endpoint)", "legendFormat": "{{endpoint}}", "refId": "F", "datasource": "Prometheus" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineInterpolation": "smooth" } },
+        "overrides": []
+      },
+      "options": { "tooltip": { "mode": "multi" } }
     },
     {
-      "type": "graph",
-      "title": "Response codes (rate 5m, all endpoints)",
+      "id": 7,
+      "type": "timeseries",
+      "title": "Response codes (rate 5m, by status code)",
       "gridPos": { "x": 8, "y": 8, "w": 16, "h": 6 },
-      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\"}[5m])) by (code)", "legendFormat": "{{code}}", "refId": "F" } ],
-      "datasource": "Prometheus"
+      "targets": [ { "expr": "sum(rate(http_requests_received_total{job=\"webapi\"}[5m])) by (code)", "legendFormat": "HTTP {{code}}", "refId": "G", "datasource": "Prometheus" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineInterpolation": "smooth" } },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": "HTTP 5.*" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } } ] },
+          { "matcher": { "id": "byRegexp", "options": "HTTP 4.*" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } } ] },
+          { "matcher": { "id": "byRegexp", "options": "HTTP 2.*" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] }
+        ]
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 8,
+      "type": "row",
+      "title": "Health Check Latency",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "id": 9,
+      "type": "stat",
+      "title": "DB Check Duration",
+      "gridPos": { "x": 0, "y": 17, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_db_duration_ms", "refId": "A", "datasource": "Prometheus" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "green" }, { "value": 200, "color": "yellow" }, { "value": 1000, "color": "red" } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Redis Check Duration",
+      "gridPos": { "x": 8, "y": 17, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_redis_duration_ms", "refId": "A", "datasource": "Prometheus" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "green" }, { "value": 100, "color": "yellow" }, { "value": 500, "color": "red" } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "RabbitMQ Check Duration",
+      "gridPos": { "x": 16, "y": 17, "w": 8, "h": 3 },
+      "targets": [ { "expr": "webapi_rabbitmq_duration_ms", "refId": "A", "datasource": "Prometheus" } ],
+      "datasource": "Prometheus",
+      "fieldConfig": {
+        "defaults": {
+          "unit": "ms",
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "green" }, { "value": 200, "color": "yellow" }, { "value": 1000, "color": "red" } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["last"] }, "colorMode": "background" }
+    },
+    {
+      "id": 12,
+      "type": "row",
+      "title": "Logs & Observability",
+      "gridPos": { "x": 0, "y": 20, "w": 24, "h": 1 },
+      "collapsed": false
+    },
+    {
+      "id": 13,
+      "type": "timeseries",
+      "title": "Log Rate by Level (5m)",
+      "gridPos": { "x": 0, "y": 21, "w": 16, "h": 8 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "sum(rate({app=\"webapi\"}[5m])) by (level)",
+          "legendFormat": "{{level}}",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "logr",
+          "custom": { "lineInterpolation": "smooth", "fillOpacity": 10 }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Error" },   "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } } ] },
+          { "matcher": { "id": "byName", "options": "Warning" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } } ] },
+          { "matcher": { "id": "byName", "options": "Information" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] }
+        ]
+      },
+      "options": { "tooltip": { "mode": "multi" } }
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Errors (5 min)",
+      "gridPos": { "x": 16, "y": 21, "w": 8, "h": 4 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({app=\"webapi\", level=\"Error\"}[5m]))",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "green" }, { "value": 1, "color": "yellow" }, { "value": 10, "color": "red" } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" }
+    },
+    {
+      "id": 15,
+      "type": "stat",
+      "title": "Warnings (5 min)",
+      "gridPos": { "x": 16, "y": 25, "w": 8, "h": 4 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "sum(count_over_time({app=\"webapi\", level=\"Warning\"}[5m]))",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "thresholds": { "mode": "absolute", "steps": [ { "value": null, "color": "green" }, { "value": 5, "color": "yellow" }, { "value": 50, "color": "orange" } ] }
+        },
+        "overrides": []
+      },
+      "options": { "reduceOptions": { "calcs": ["sum"] }, "colorMode": "background" }
+    },
+    {
+      "id": 16,
+      "type": "logs",
+      "title": "System Logs (Recent)",
+      "gridPos": { "x": 0, "y": 29, "w": 24, "h": 10 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{app=\"webapi\"} | json",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 17,
+      "type": "logs",
+      "title": "Error & Warning Logs",
+      "gridPos": { "x": 0, "y": 39, "w": 24, "h": 10 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{app=\"webapi\"} | json | level =~ \"Error|Warning\"",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": true,
+        "showCommonLabels": false,
+        "showLabels": true,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 18,
+      "type": "logs",
+      "title": "HTTP Request Logs",
+      "gridPos": { "x": 0, "y": 49, "w": 24, "h": 10 },
+      "datasource": "Loki",
+      "targets": [
+        {
+          "expr": "{app=\"webapi\"} | json | message =~ \"(?i)incoming request|outgoing response\"",
+          "refId": "A",
+          "datasource": "Loki"
+        }
+      ],
+      "options": {
+        "dedupStrategy": "none",
+        "enableLogDetails": true,
+        "prettifyLogMessage": false,
+        "showCommonLabels": false,
+        "showLabels": false,
+        "showTime": true,
+        "sortOrder": "Descending",
+        "wrapLogMessage": false
+      }
     }
-  ],
-  "time": { "from": "now-1h", "to": "now" }
+  ]
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -18,18 +20,26 @@ public class RabbitMqHealthCheck : IHealthCheck
     {
         try
         {
-            if (_connection != null && _connection.IsOpen)
-            {
-                // try creating a channel briefly
-                using var channel = _connection.CreateModel();
-                return Task.FromResult(HealthCheckResult.Healthy("RabbitMQ reachable"));
-            }
+            if (_connection == null || !_connection.IsOpen)
+                return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ connection is closed or unavailable"));
 
-            return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ connection closed"));
+            var sw = Stopwatch.StartNew();
+            using var channel = _connection.CreateModel();
+            sw.Stop();
+
+            var data = new Dictionary<string, object>
+            {
+                ["channel_open"]    = channel.IsOpen,
+                ["channel_latency_ms"] = sw.Elapsed.TotalMilliseconds
+            };
+
+            return Task.FromResult(channel.IsOpen
+                ? HealthCheckResult.Healthy($"RabbitMQ reachable — channel opened in {sw.Elapsed.TotalMilliseconds:F1}ms", data)
+                : HealthCheckResult.Degraded("RabbitMQ channel failed to open", data: data));
         }
         catch (System.Exception ex)
         {
-            return Task.FromResult(HealthCheckResult.Unhealthy("RabbitMQ error: " + ex.Message));
+            return Task.FromResult(HealthCheckResult.Unhealthy($"RabbitMQ unreachable: {ex.Message}"));
         }
     }
 }

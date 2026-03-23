@@ -15,12 +15,28 @@ services:
     ports:
       - "6379:6379"
 
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/local-config.yaml
+      - loki_data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+    healthcheck:
+      test: [ "CMD-SHELL", "wget -q --spider http://localhost:3100/ready || exit 1" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   webapi:
     build:
       context: .
       dockerfile: source/WebApi/Dockerfile
     ports:
       - "5000:80"
+    volumes:
+      - dataprotection_keys:/data/dataprotection-keys
     environment:
       ASPNETCORE_ENVIRONMENT: Development
       ASPNETCORE_URLS: "http://+:80"
@@ -42,12 +58,15 @@ services:
       Email__Username: "${EMAIL_USERNAME}"
       Email__Password: "${EMAIL_PASSWORD}"
       Email__EnableSsl: "${EMAIL_ENABLESSL}"
+      Loki__Url: "${Loki__Url}"
     depends_on:
       postgres:
         condition: service_started
       redis:
         condition: service_started
       rabbitmq:
+        condition: service_healthy
+      loki:
         condition: service_healthy
 
   prometheus:
@@ -73,6 +92,7 @@ services:
       - "3000:3000"
     depends_on:
       - prometheus
+      - loki
   grafana-init:
     image: python:3.11-alpine
     environment:
@@ -110,3 +130,5 @@ services:
 
 volumes:
   postgres_data:
+  loki_data:
+  dataprotection_keys:
