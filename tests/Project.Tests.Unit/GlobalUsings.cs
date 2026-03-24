@@ -1,0 +1,16 @@
+global using Xunit;
+global using Moq;
+global using FluentAssertions;
+global using MediatR;
+global using Microsoft.Extensions.Options;
+global using Microsoft.Extensions.Localization;
+global using Project.Application.Common.Localizers;
+global using Project.Application.Common.Settings;
+global using Project.Application.Common.Interfaces;
+global using Project.Application.Common.Models;
+global using Project.Domain.Entities;
+global using Project.Domain.Interfaces.Data.Repositories;
+global using Project.Domain.Interfaces.Services;
+global using Project.Domain.Notifications;
+global using Project.Tests.Unit.Common;
+global using Project.Tests.Unit.Common.Builders;

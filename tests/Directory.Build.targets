@@ -1,0 +1,30 @@
+<!--
+  Directory.Build.targets — applied to ALL projects under tests/
+  ─────────────────────────────────────────────────────────────────────────────
+  After every successful build of a test project this target runs the tests.
+  If any test fails, the build is marked as failed, blocking deployment/CI.
+
+  To skip (useful when developing broken tests intentionally):
+      dotnet build -p:SkipTests=true
+  or:
+      dotnet test (runs tests directly without re-triggering this target)
+-->
+<Project>
+
+  <Target Name="RunTestsAfterBuild"
+          AfterTargets="Build"
+          Condition="'$(IsTestProject)' == 'true' AND '$(SkipTests)' != 'true'">
+
+    <Message Text="━━━ Running tests for $(MSBuildProjectName) ━━━" Importance="high" />
+
+    <Exec
+      Command="dotnet test &quot;$(MSBuildProjectFullPath)&quot; --no-build --nologo --verbosity normal"
+      ConsoleToMSBuild="true"
+      IgnoreExitCode="false"
+      WorkingDirectory="$(MSBuildProjectDirectory)" />
+
+    <Message Text="━━━ All tests passed for $(MSBuildProjectName) ✔ ━━━" Importance="high" />
+
+  </Target>
+
+</Project>
