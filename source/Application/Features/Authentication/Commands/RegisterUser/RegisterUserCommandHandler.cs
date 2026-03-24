@@ -25,12 +25,25 @@ namespace Project.Application.Features.Commands.RegisterUser
 
         public async Task<RegisterUserCommandResponse?> Handle(RegisterUserCommand command, CancellationToken cancellationToken)
         {
+            var cooldownSeconds = 60;
+            if (!string.IsNullOrWhiteSpace(_appSettings.EmailCooldownSeconds) && int.TryParse(_appSettings.EmailCooldownSeconds, out var cfg) && cfg > 0)
+                cooldownSeconds = cfg;
+            var cooldownKey = $"email:cooldown:{command.Request.Email}";
+            var cooldownExists = await _redisService.GetAsync<string>(cooldownKey);
+            if (cooldownExists is not null)
+            {
+                await _mediator.Publish(new DomainNotification("RegisterUser", _localizer.Text("EmailCooldown", cooldownSeconds)), cancellationToken);
+                return default;
+            }
+
             var expirationMinutes = 15;
             var token     = Guid.NewGuid().ToString();
             var tokenInfo = $"{command.Request.Email};{User.HashPassword(command.Request.Password)};{command.Request.Username}";
             var expiration = TimeSpan.FromMinutes(expirationMinutes);
             await _redisService.SetAsync(token, tokenInfo, expiration);
             await _redisService.SetAsync($"pending:{command.Request.Email}", token, expiration);
+            // set cooldown to avoid spamming this email address
+            await _redisService.SetAsync(cooldownKey, "1", TimeSpan.FromSeconds(cooldownSeconds));
 
             var confirmationUrl = $"{_appSettings.BaseUrl}/api/v1/Authentication/Confirm/{token}";
 

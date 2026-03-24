@@ -23,6 +23,18 @@ public class ResendConfirmationCommandHandler(
     public async Task<ResendConfirmationCommandResponse?> Handle(ResendConfirmationCommand command, CancellationToken cancellationToken)
     {
         var pendingKey = $"pending:{command.Request.Email}";
+
+        var cooldownSeconds = 60;
+        if (!string.IsNullOrWhiteSpace(_appSettings.EmailCooldownSeconds) && int.TryParse(_appSettings.EmailCooldownSeconds, out var cfg) && cfg > 0)
+            cooldownSeconds = cfg;
+        var cooldownKey = $"email:cooldown:{command.Request.Email}";
+        var cooldownExists = await _redisService.GetAsync<string>(cooldownKey);
+        if (cooldownExists is not null)
+        {
+            await _mediator.Publish(new DomainNotification("ResendConfirmation", _localizer.Text("EmailCooldown", cooldownSeconds)), cancellationToken);
+            return default;
+        }
+
         var existingToken = await _redisService.GetAsync<string>(pendingKey);
 
         if (existingToken is null)
@@ -56,6 +68,9 @@ public class ResendConfirmationCommandHandler(
         var confirmationUrl = $"{_appSettings.BaseUrl}/api/v1/Authentication/Confirm/{newToken}";
         var subject     = _localizer.Text("ConfirmEmailSubject");
         var bodyContent = _localizer.Text("ConfirmEmailBody", username, confirmationUrl, expirationMinutes);
+
+        // set cooldown to avoid spamming this email address
+        await _redisService.SetAsync(cooldownKey, "1", TimeSpan.FromSeconds(cooldownSeconds));
 
         await _emailQueuePublisher.PublishAsync(
             new EmailMessage { To = command.Request.Email, Subject = subject, Body = bodyContent },

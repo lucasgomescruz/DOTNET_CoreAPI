@@ -98,4 +98,7 @@
         <p>Si no cambió su contraseña, por favor contacte a nuestro equipo de soporte de inmediato.</p>]]>
     </value>
   </data>
+  <data name="EmailCooldown" xml:space="preserve">
+    <value>Puede solicitar otro correo en {0} segundos.</value>
+  </data>
 </root>

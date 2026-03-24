@@ -9,4 +9,7 @@ public class AppSettings
     public string ProjectName { get; set; } = "ProjectAPI";
     public string ProjectOwner { get; set; } = "Lucas Gomes Cruz";
     public string InterfaceUrl { get; set; } = ""; // Placeholder, no use yet
+    // Number of seconds to cooldown between email sends for the same recipient.
+    // Leave empty to use the default in code.
+    public string EmailCooldownSeconds { get; set; } = "";
 }

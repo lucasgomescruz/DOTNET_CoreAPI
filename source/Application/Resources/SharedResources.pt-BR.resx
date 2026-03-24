@@ -97,5 +97,8 @@
         <p>Se você não alterou sua senha, por favor entre em contato com nossa equipe de suporte imediatamente.</p>]]>
     </value>
   </data>
+  <data name="EmailCooldown" xml:space="preserve">
+    <value>Você poderá solicitar outro e-mail em {0} segundos.</value>
+  </data>
 </root>
 
