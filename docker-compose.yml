@@ -60,6 +60,7 @@ services:
       Email__Password: "${EMAIL_PASSWORD}"
       Email__EnableSsl: "${EMAIL_ENABLESSL}"
       Loki__Url: "${Loki__Url}"
+      ADMIN_PANEL_PASSWORD: "${ADMIN_PANEL_PASSWORD}"
     depends_on:
       postgres:
         condition: service_started

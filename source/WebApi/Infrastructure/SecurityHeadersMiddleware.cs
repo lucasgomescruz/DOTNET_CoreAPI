@@ -25,17 +25,36 @@ public class SecurityHeadersMiddleware(RequestDelegate next)
         // Control referrer information
         headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
 
-        // Determine if this request is for Swagger UI and running in Development
+        // Determine if this request is for Swagger UI or GraphQL playground, and running in Development
         var env = context.RequestServices.GetService<IWebHostEnvironment>();
-        var isSwaggerRequest = context.Request.Path.StartsWithSegments("/swagger", StringComparison.OrdinalIgnoreCase);
+        var isSwaggerRequest  = context.Request.Path.StartsWithSegments("/swagger",  StringComparison.OrdinalIgnoreCase);
+        var isGraphQlRequest  = context.Request.Path.StartsWithSegments("/graphql",  StringComparison.OrdinalIgnoreCase);
 
         // CSP: default restrictive policy
         var csp = "default-src 'self'; frame-ancestors 'none'; form-action 'self';";
 
-        // In Development, allow inline scripts/styles for Swagger UI only
-        if (env?.IsDevelopment() == true && isSwaggerRequest)
+        if (env?.IsDevelopment() == true)
         {
-            csp = "default-src 'self'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
+            if (isSwaggerRequest)
+            {
+                // Swagger UI: needs inline scripts/styles
+                csp = "default-src 'self'; frame-ancestors 'none'; form-action 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline';";
+            }
+            else if (isGraphQlRequest)
+            {
+                // Banana Cake Pop playground:
+                //   script-src  unsafe-eval  → AJV uses new Function() for schema validation
+                //   style-src   unsafe-inline → Emotion CSS-in-JS inserts <style> tags at runtime
+                //   font-src    https: data:  → may fetch fonts from CDN or embed as data URIs
+                //   img-src     data: blob:   → icons/thumbnails as data/blob URIs
+                //   connect-src ws: wss:      → GraphQL subscriptions over WebSocket
+                csp = "default-src 'self'; frame-ancestors 'none'; form-action 'self'; " +
+                      "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                      "style-src 'self' 'unsafe-inline'; " +
+                      "font-src 'self' https: data:; " +
+                      "img-src 'self' data: blob:; " +
+                      "connect-src 'self' ws: wss:;";
+            }
         }
 
         headers["Content-Security-Policy"] = csp;

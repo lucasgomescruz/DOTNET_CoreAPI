@@ -125,12 +125,38 @@ public static class DependencyInjection
 
         services.AddSwaggerConfiguration();
 
+        // ── GraphQL (Hot Chocolate) ────────────────────────────────────────────
+        services
+            .AddGraphQLServer()
+            .AddQueryType<Project.WebApi.GraphQL.AuthQuery>()
+            .AddMutationType<Project.WebApi.GraphQL.AuthMutation>()
+            .AddAuthorization()
+            .AddHttpRequestInterceptor<Project.WebApi.GraphQL.CultureHttpRequestInterceptor>()
+            .ModifyRequestOptions(opt =>
+            {
+                // Expose full exception details in Development so errors are never
+                // hidden as "Unexpected Execution Error".
+                opt.IncludeExceptionDetails =
+                    string.Equals(
+                        Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT"),
+                        "Development",
+                        StringComparison.OrdinalIgnoreCase);
+            });
+
         return services;
     }
     private static IServiceCollection AddNotifications(this IServiceCollection services)
     {
-        services.AddScoped<INotificationHandler<DomainNotification>, DomainNotificationHandler>();
-        services.AddScoped<INotificationHandler<DomainSuccessNotification>, DomainSuccessNotificationHandler>();
+        // Register the concrete handlers as themselves first (scoped).
+        // MediatR resolves INotificationHandler<T> and the GraphQL resolvers
+        // both need to share the SAME scoped instance so notifications published
+        // during a command handler are visible when the resolver checks them.
+        services.AddScoped<DomainNotificationHandler>();
+        services.AddScoped<DomainSuccessNotificationHandler>();
+
+        // Forward the interface registrations to the already-registered concrete instances.
+        services.AddScoped<INotificationHandler<DomainNotification>>(sp => sp.GetRequiredService<DomainNotificationHandler>());
+        services.AddScoped<INotificationHandler<DomainSuccessNotification>>(sp => sp.GetRequiredService<DomainSuccessNotificationHandler>());
 
         return services;
     }

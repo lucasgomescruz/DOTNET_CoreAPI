@@ -83,6 +83,9 @@ else if (app.Environment.IsProduction())
 // Security headers — must be added before any response-producing middleware
 app.UseMiddleware<SecurityHeadersMiddleware>();
 
+// Admin panel authentication (Swagger + GraphQL UI protection in Production)
+app.UseMiddleware<AdminPanelAuthMiddleware>();
+
 app.UseRequestLocalization(app.Services.GetRequiredService<IOptions<RequestLocalizationOptions>>().Value);
 
 app.MapHealthChecks("/health", new HealthCheckOptions
@@ -155,6 +158,14 @@ app.UseAuthorization();
 app.UseMiddleware<RequestResponseLoggingMiddleware>();
 
 app.MapControllers();
+
+// ── GraphQL endpoint ──────────────────────────────────────────────────────
+// AllowAnonymous overrides the global FallbackPolicy; Hot Chocolate handles
+// field-level authorization via [Authorize] on individual resolvers.
+app.MapGraphQL("/graphql").AllowAnonymous();
+
+// Banana Cake Pop requests /favicon.svg — allow it without auth so it doesn't return 401.
+app.Map("/favicon.svg", () => Results.NoContent()).AllowAnonymous();
 
 app.UseExceptionHandler(options => { });
 

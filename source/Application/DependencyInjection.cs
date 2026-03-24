@@ -12,7 +12,7 @@ public static class DependencyInjection
         services.AddOptions<AppSettings>();
 
         services.AddAutoMapper(cfg => cfg.AddMaps(Assembly.GetExecutingAssembly()));
-        services.AddSingleton<CultureLocalizer>();
+        services.AddScoped<CultureLocalizer>();
         services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
 
         services.AddMediatR(cfg =>

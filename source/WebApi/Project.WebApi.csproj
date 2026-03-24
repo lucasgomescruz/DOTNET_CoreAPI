@@ -33,5 +33,7 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.8.1" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.1.0" />
     <PackageReference Include="Microsoft.Extensions.Localization" Version="8.0.10" />
+    <PackageReference Include="HotChocolate.AspNetCore" Version="14.3.0" />
+    <PackageReference Include="HotChocolate.AspNetCore.Authorization" Version="14.3.0" />
   </ItemGroup>
 </Project>
