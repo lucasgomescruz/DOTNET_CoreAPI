@@ -44,6 +44,7 @@ public class ConfirmUserCommandHandler(
         }
 
         await _redisService.DeleteAsync(request.Token);
+        await _redisService.DeleteAsync($"pending:{email}");
 
         var user = new User(
             username: username,

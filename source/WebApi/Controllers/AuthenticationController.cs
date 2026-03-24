@@ -7,6 +7,9 @@ using Project.Domain.Notifications;
 using Microsoft.AspNetCore.Authorization;
 using Swashbuckle.AspNetCore.Annotations;
 using Project.Application.Features.Commands.ConfirmUser;
+using Project.Application.Features.Commands.ResendConfirmation;
+using Project.Application.Features.Commands.RequestPasswordReset;
+using Project.Application.Features.Commands.ConfirmPasswordReset;
 
 namespace Project.WebApi.Controllers
 {
@@ -56,6 +59,33 @@ namespace Project.WebApi.Controllers
         public async Task<IActionResult> Confirm(string token)
         {
             return Response(await _mediatorHandler.Send(new ConfirmUserCommand(token)));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ResendConfirmation")]
+        [SwaggerOperation(Summary = "Resend the account confirmation email for a pending registration.")]
+        [ProducesResponseType(typeof(ResendConfirmationCommandResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ResendConfirmation([FromBody] ResendConfirmationCommandRequest request)
+        {
+            return Response(await _mediatorHandler.Send(new ResendConfirmationCommand(request)));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ForgotPassword")]
+        [SwaggerOperation(Summary = "Request a password reset email.")]
+        [ProducesResponseType(typeof(RequestPasswordResetCommandResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ForgotPassword([FromBody] RequestPasswordResetCommandRequest request)
+        {
+            return Response(await _mediatorHandler.Send(new RequestPasswordResetCommand(request)));
+        }
+
+        [AllowAnonymous]
+        [HttpPost("ResetPassword/{token}")]
+        [SwaggerOperation(Summary = "Confirm a password reset using the token sent by email.")]
+        [ProducesResponseType(typeof(ConfirmPasswordResetCommandResponse), StatusCodes.Status200OK)]
+        public async Task<IActionResult> ResetPassword(string token, [FromBody] ConfirmPasswordResetCommandRequest request)
+        {
+            return Response(await _mediatorHandler.Send(new ConfirmPasswordResetCommand(token, request)));
         }
 
         [HttpGet("GetAuthenticatedUser")]

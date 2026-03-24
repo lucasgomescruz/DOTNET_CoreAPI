@@ -28,7 +28,9 @@ namespace Project.Application.Features.Commands.RegisterUser
             var expirationMinutes = 15;
             var token     = Guid.NewGuid().ToString();
             var tokenInfo = $"{command.Request.Email};{User.HashPassword(command.Request.Password)};{command.Request.Username}";
-            await _redisService.SetAsync(token, tokenInfo, TimeSpan.FromMinutes(expirationMinutes));
+            var expiration = TimeSpan.FromMinutes(expirationMinutes);
+            await _redisService.SetAsync(token, tokenInfo, expiration);
+            await _redisService.SetAsync($"pending:{command.Request.Email}", token, expiration);
 
             var confirmationUrl = $"{_appSettings.BaseUrl}/api/v1/Authentication/Confirm/{token}";
 

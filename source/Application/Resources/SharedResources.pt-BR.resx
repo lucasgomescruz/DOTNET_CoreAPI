@@ -66,5 +66,36 @@
         <p>Se tiver alguma dúvida ou precisar de assistência, por favor, não hesite em entrar em contato com nossa equipe de suporte.</p>]]>
     </value>
   </data>
+  <data name="NoPendingConfirmation" xml:space="preserve">
+    <value>Nenhuma confirmação pendente foi encontrada para este endereço de e-mail.</value>
+  </data>
+  <data name="InvalidResetToken" xml:space="preserve">
+    <value>Token de redefinição de senha inválido ou expirado.</value>
+  </data>
+  <data name="PasswordResetSubject" xml:space="preserve">
+    <value>Redefinição de Senha</value>
+  </data>
+  <data name="PasswordResetBody" xml:space="preserve">
+    <value>
+        <![CDATA[<h1>Solicitação de Redefinição de Senha, @{0}!</h1>
+        <p>Recebemos uma solicitação para redefinir a senha da sua conta.</p>
+        <p>Clique no link abaixo para definir uma nova senha:</p>
+        <a href='{1}'>Redefinir Senha</a>
+        <br></br>
+        <p>Este link expirará em {2} minutos.</p>
+        <p>Se você não solicitou a redefinição de senha, por favor ignore este e-mail. Sua senha não será alterada.</p>]]>
+    </value>
+  </data>
+  <data name="PasswordResetConfirmedSubject" xml:space="preserve">
+    <value>Senha Alterada com Sucesso</value>
+  </data>
+  <data name="PasswordResetConfirmedBody" xml:space="preserve">
+    <value>
+        <![CDATA[<h1>Sua senha foi alterada, @{0}!</h1>
+        <p>A senha da sua conta foi atualizada recentemente.</p>
+        <p>Se você realizou essa alteração, nenhuma ação adicional é necessária.</p>
+        <p>Se você não alterou sua senha, por favor entre em contato com nossa equipe de suporte imediatamente.</p>]]>
+    </value>
+  </data>
 </root>
 

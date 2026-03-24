@@ -67,4 +67,35 @@
         <p>Si tiene alguna pregunta o necesita asistencia, no dude en ponerse en contacto con nuestro equipo de soporte.</p>]]>
     </value>
   </data>
+  <data name="NoPendingConfirmation" xml:space="preserve">
+    <value>No se encontró ninguna confirmación pendiente para esta dirección de correo electrónico.</value>
+  </data>
+  <data name="InvalidResetToken" xml:space="preserve">
+    <value>Token de restablecimiento de contraseña inválido o expirado.</value>
+  </data>
+  <data name="PasswordResetSubject" xml:space="preserve">
+    <value>Restablecimiento de Contraseña</value>
+  </data>
+  <data name="PasswordResetBody" xml:space="preserve">
+    <value>
+        <![CDATA[<h1>Solicitud de Restablecimiento de Contraseña, @{0}!</h1>
+        <p>Recibimos una solicitud para restablecer la contraseña de su cuenta.</p>
+        <p>Haga clic en el enlace a continuación para establecer una nueva contraseña:</p>
+        <a href='{1}'>Restablecer Contraseña</a>
+        <br></br>
+        <p>Este enlace expirará en {2} minutos.</p>
+        <p>Si no solicitó el restablecimiento de contraseña, por favor ignore este correo electrónico. Su contraseña no cambiará.</p>]]>
+    </value>
+  </data>
+  <data name="PasswordResetConfirmedSubject" xml:space="preserve">
+    <value>Contraseña Cambiada Exitosamente</value>
+  </data>
+  <data name="PasswordResetConfirmedBody" xml:space="preserve">
+    <value>
+        <![CDATA[<h1>¡Su contraseña ha sido cambiada, @{0}!</h1>
+        <p>La contraseña de su cuenta fue actualizada recientemente.</p>
+        <p>Si realizó este cambio, no se requiere ninguna acción adicional.</p>
+        <p>Si no cambió su contraseña, por favor contacte a nuestro equipo de soporte de inmediato.</p>]]>
+    </value>
+  </data>
 </root>
